@@ -39,6 +39,15 @@ def longtext_format(request):
     LU2001709034
     LU2057889995
     LU2001709547
+    2. TARENO FIXED INCOME FUND
+    LU1299722972
+    3. TARENO GLOBAL EQUITY FUND
+    LU1299721909
+    LU1299722113
+    LU1299722030
+    4. MIV GLOBAL MEDTECH FUND
+    LU0329630999
+    LU0329630130
     """
     # 字符串截取之后经过处理的list
     text_list = []
@@ -50,8 +59,6 @@ def longtext_format(request):
     text_dict = dict()
     # 字典中key为sub_fund的list初始化
     text_dict['sub_fund'] = []
-    # sub_fund中的单一元素字典初始化
-    sub_fund_ele = {'title': '', 'isin': []}
     # 循环字符串截取之后经过处理的list
     for index in range(len(text_list)):
         # 第一个元素为name
@@ -61,13 +68,31 @@ def longtext_format(request):
         elif index == 1:
             text_dict['lei'] = text_list[index]
         else:
+
             # 用ASCII，判断首位的编码是不是在大小写字母编码范围内
             letters_list = list(string.ascii_letters)
+            # 用来取得数组下一个元素的count
+            count = 1
+            # sub_fund中的单一元素字典初始化
+            sub_fund_ele = dict()
             # 判断是否以数字为开头，如果以数字开头则为title，否则追加到isin中
             if str(text_list[index])[0] not in letters_list:
                 sub_fund_ele['title'] = str(text_list[index]).split('.')[1].strip()
-            else:
-                sub_fund_ele['isin'].append(text_list[index])
-            text_dict['sub_fund'].append(sub_fund_ele)
+                sub_fund_ele['isin'] = []
+                # 这里做一个无限循环
+                while True:
+                    # 如果在以数字开头的元素之后的元素为字母开头,则追加到数组,否则跳出无限循环
+                    if text_list[index + count][0] in letters_list:
+                        sub_fund_ele['isin'].append(text_list[index + count])
+                        # 下标与count的和不能超过数组长度-1，否则跳出
+                        if index + count < len(text_list) - 1:
+                           count += 1
+                        else:
+                            break
+                    else:
+                        break
+            # 长度大于0的字典然后追加,因为在上面的操作中会生成空的字典
+            if len(sub_fund_ele) > 0:
+                text_dict['sub_fund'].append(sub_fund_ele)
     ret = {'code': 200, 'status': 'ok', 'message': text_dict}
     return JsonResponse(ret)
